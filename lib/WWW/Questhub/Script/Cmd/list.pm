@@ -8,7 +8,6 @@ package WWW::Questhub::Script::Cmd::list;
 use Carp;
 use Moo; with 'WWW::Questhub::Script::Cmd';
 use MooX::Cmd;
-use Term::ANSIColor qw(colored);
 use Types::Standard -types;
 
 use constant { true => !!1, false => !!0 };
@@ -18,6 +17,7 @@ sub option_spec {
         [ "owner=s"   => "the quest's owner" ],
         [ "status=s"  => "the quest status (open/completed/abandoned)" ],
         [ "tags=s"    => "quest tags prefixed by + or -" ],
+        [ "format=s"  => "output format; default 'Compact'" ],
     ];
 }
 
@@ -43,7 +43,7 @@ sub run {
         }
     }
 
-    my $wq = WWW::Questhub->new();
+    my $wq = $self->app->questhub;
 
     my @quests = $wq->get_quests(
         ( defined $option_user ? ( user => $option_user ) : () ),
@@ -51,24 +51,11 @@ sub run {
     );
 
     my $filtered_quests = $self->_filter_quests_by_tags(\@quests, \@option_with_tags, \@option_without_tags);
+    
+    my $formatter = $self->get_formatter;
 
     foreach my $quest (@$filtered_quests) {
-
-        my $tags = '';
-        foreach my $tag (@{ $quest->get_tags() }) {
-            $tags .= colored($tag, 'magenta') . ", ";
-        }
-        $tags = substr($tags, 0, length($tags) - 2);
-        $tags .= " " if length($tags) > 0;
-
-        print colored($quest->get_id(), 'yellow')
-            . " "
-            . colored($quest->get_status(), 'blue')
-            . " "
-            . $tags
-            . $quest->get_name()
-            . "\n"
-            ;
+        print $formatter->quest($quest);
     }
 }
 

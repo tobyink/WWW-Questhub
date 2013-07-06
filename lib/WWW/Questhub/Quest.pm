@@ -63,40 +63,9 @@ sub __new {
 
 sub print_info {
     my $self = shift;
-
+    require WWW::Questhub::Format::Detailed;
     print "# WWW::Questhub::Quest all known info\n";
-    print "id:        " . colored($self->get_id(), 'yellow') . "\n";
-    print "name:      " . colored($self->get_name(), 'blue') . "\n";
-    print "status:    " . colored($self->get_status(), 'blue') . "\n";
-    print "author:    " . $self->get_author() . "\n";
-
-    my @owners = @{ $self->get_owners() };
-
-    if (@owners) {
-        print "owners:\n";
-        foreach (@owners) {
-            print " * $_\n";
-        }
-        print "\n";
-    } else {
-        print "owners:    " . colored('none', 'blue') . "\n";
-    }
-
-    my @tags = @{ $self->get_tags() };
-
-    if (@tags) {
-        print "tags:\n";
-        foreach (@tags) {
-            print " * " . colored($_, 'magenta') . "\n";
-        }
-        print "\n";
-    } else {
-        print "tags:      " . colored('none', 'blue') . "\n";
-    }
-
-    print "\n";
-
-    return false;
+    print 'WWW::Questhub::Format::Detailed'->new->quest($self);
 }
 
 1;
