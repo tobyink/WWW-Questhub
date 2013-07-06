@@ -55,11 +55,6 @@ has status => (
     isa      => Enum[ WWW::Questhub::Util::__get_known_quest_states() ],
 );
 
-sub __new {
-    my $class = shift;
-    $class->new(@_)
-}
-
 sub print_info {
     my $self = shift;
     require WWW::Questhub::Format::Detailed;

@@ -88,7 +88,7 @@ sub get_quests {
 
     my @quests;
     foreach my $element (@{$data}) {
-        my $quest = WWW::Questhub::Quest->__new(%{$element});
+        my $quest = WWW::Questhub::Quest->new(%{$element});
         push @quests, $quest;
     }
 
