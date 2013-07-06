@@ -6,7 +6,6 @@ use open qw(:std :utf8);
 package WWW::Questhub::Quest;
 
 use Moo;
-use Term::ANSIColor qw(colored);
 use Types::Standard -types;
 use WWW::Questhub::Util;
 
