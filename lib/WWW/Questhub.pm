@@ -1,50 +1,64 @@
-package WWW::Questhub;
-
 use strict;
 use warnings FATAL => 'all';
 use utf8;
 use open qw(:std :utf8);
 
+package WWW::Questhub;
+
 use Carp;
 use LWP::UserAgent;
 use JSON;
+use Moo;
 use URI;
-
+use Types::Standard -types;
 use WWW::Questhub::Quest;
 
 my $true = 1;
 my $false = '';
 
-sub new {
-    my ($class, %opts) = @_;
+has agent => (
+    is       => "lazy",
+    reader   => "__get_agent",
+    builder  => "_build_agent",
+    init_arg => undef,
+    isa      => Str,
+);
 
-    croak "new() shoud not recieve any options. Stopped" if %opts;
-
-    my $self = {};
-    bless $self, $class;
-
-    $self->__set_server('http://questhub.io');
-
+sub _build_agent {
+    my $class = ref($_[0]) || $_[0];
     my $version_text = '';
     eval {
-        $version_text = " " . $WWW::Questhub::VERSION;
+        $version_text = " " . $class->VERSION;
     };
-    $self->__set_agent("WWW::Questhub$version_text");
+    $class . $version_text;
+}
 
-    return $self;
+has server => (
+    is       => "ro",
+    reader   => "__get_server",
+    isa      => Str,
+    default  => 'http://questhub.io'
+);
+
+has ua => (
+    is       => "lazy",
+    isa      => HasMethods[qw/request/],
+    builder  => "_build_ua",
+);
+
+sub _build_ua {
+    my $self =  shift;
+    'LWP::UserAgent'->new( agent => $self->__get_agent );
 }
 
 sub get {
     my ($self, $url) = @_;
 
-    my $ua = LWP::UserAgent->new;
-    $ua->agent($self->__get_agent());
-
     my $req = HTTP::Request->new(
         GET => $url,
     );
 
-    my $res = $ua->request($req);
+    my $res = $self->ua->request($req);
 
     return $res->content if $res->is_success;
 }
@@ -79,36 +93,6 @@ sub get_quests {
     }
 
     return @quests;
-}
-
-sub __set_server {
-    my ($self, $server) = @_;
-
-    croak "__set_server() should recieve server url" if not defined $server;
-
-    $self->{__server} = $server;
-    return $false;
-}
-
-sub __get_server {
-    my ($self) = @_;
-
-    return $self->{__server};
-}
-
-sub __set_agent {
-    my ($self, $agent) = @_;
-
-    croak "__set_agent() should recieve agent text" if not defined $agent;
-
-    $self->{__agent} = $agent;
-    return $false;
-}
-
-sub __get_agent {
-    my ($self) = @_;
-
-    return $self->{__agent};
 }
 
 1;

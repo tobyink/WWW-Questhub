@@ -1,28 +1,22 @@
-package WWW::Questhub::Script;
-
 use strict;
 use warnings FATAL => 'all';
 use utf8;
 use open qw(:std :utf8);
 
-use Carp;
-use Term::ANSIColor qw(colored);
+package WWW::Questhub::Script;
 
+use Carp;
+use Moo;
+use Term::ANSIColor qw(colored);
+use Types::Standard -types;
 use WWW::Questhub;
 use WWW::Questhub::Util;
 
-my $true = 1;
-my $false = '';
+use constant { true => !!1, false => !!0 };
 
 sub __new {
-    my ($class, %opts) = @_;
-
-    croak "__new() shoud not recieve any options. Stopped" if %opts;
-
-    my $self = {};
-    bless $self, $class;
-
-    return $self;
+    my $class = shift;
+    $class->new(@_)
 }
 
 sub __is_known_command {
@@ -32,12 +26,7 @@ sub __is_known_command {
         list
     );
 
-    if (WWW::Questhub::Util::__in_array($command, @known_commands)) {
-        return $true;
-    } else {
-        return $false;
-    }
-
+    return WWW::Questhub::Util::__in_array($command, @known_commands);
 }
 
 sub list {
@@ -104,22 +93,22 @@ sub list {
     } else {
         foreach my $quest (@quests) {
 
-            my $quest_has_plus_tag = $false;
+            my $quest_has_plus_tag = false;
             CHECK_HAS_PLUS_TAG:
-            foreach my $tag ($quest->get_tags()) {
+            foreach my $tag (@{ $quest->get_tags() }) {
                 my $tmp = WWW::Questhub::Util::__in_array($tag, @option_with_tags);
                 if ($tmp) {
-                    $quest_has_plus_tag = $true;
+                    $quest_has_plus_tag = true;
                     last CHECK_HAS_PLUS_TAG;
                 }
             }
 
-            my $quest_has_minus_tag = $false;
+            my $quest_has_minus_tag = false;
             CHECK_HAS_MINUS_TAG:
-            foreach my $tag ($quest->get_tags()) {
+            foreach my $tag (@{ $quest->get_tags() }) {
                 my $tmp = WWW::Questhub::Util::__in_array($tag, @option_without_tags);
                 if ($tmp) {
-                    $quest_has_minus_tag = $true;
+                    $quest_has_minus_tag = true;
                     last CHECK_HAS_MINUS_TAG;
                 }
             }
@@ -143,7 +132,7 @@ sub list {
     foreach my $quest (@filtered_quests) {
 
         my $tags = '';
-        foreach my $tag ($quest->get_tags()) {
+        foreach my $tag (@{ $quest->get_tags() }) {
             $tags .= colored($tag, 'magenta') . ", ";
         }
         $tags = substr($tags, 0, length($tags) - 2);
