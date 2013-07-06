@@ -50,8 +50,36 @@ sub run {
         ( defined $option_status ? ( status => $option_status ) : () ),
     );
 
-    my @filtered_quests;
+    my $filtered_quests = $self->_filter_quests_by_tags(\@quests, \@option_with_tags, \@option_without_tags);
 
+    foreach my $quest (@$filtered_quests) {
+
+        my $tags = '';
+        foreach my $tag (@{ $quest->get_tags() }) {
+            $tags .= colored($tag, 'magenta') . ", ";
+        }
+        $tags = substr($tags, 0, length($tags) - 2);
+        $tags .= " " if length($tags) > 0;
+
+        print colored($quest->get_id(), 'yellow')
+            . " "
+            . colored($quest->get_status(), 'blue')
+            . " "
+            . $tags
+            . $quest->get_name()
+            . "\n"
+            ;
+    }
+}
+
+sub _filter_quests_by_tags {
+    my $self                = shift;
+    my @quests              = @{$_[0]};
+    my @option_with_tags    = @{$_[1]};
+    my @option_without_tags = @{$_[2]};
+    
+    my @filtered_quests;
+    
     if (@option_with_tags == 0 and @option_without_tags == 0) {
         @filtered_quests = @quests;
     } else {
@@ -92,25 +120,8 @@ sub run {
             }
         }
     }
-
-    foreach my $quest (@filtered_quests) {
-
-        my $tags = '';
-        foreach my $tag (@{ $quest->get_tags() }) {
-            $tags .= colored($tag, 'magenta') . ", ";
-        }
-        $tags = substr($tags, 0, length($tags) - 2);
-        $tags .= " " if length($tags) > 0;
-
-        print colored($quest->get_id(), 'yellow')
-            . " "
-            . colored($quest->get_status(), 'blue')
-            . " "
-            . $tags
-            . $quest->get_name()
-            . "\n"
-            ;
-    }
+    
+    return \@filtered_quests;
 }
 
 1;
