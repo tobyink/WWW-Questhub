@@ -6,62 +6,41 @@ use open qw(:std :utf8);
 package WWW::Questhub::Script::Cmd::list;
 
 use Carp;
-use Moo;
+use Moo; with 'WWW::Questhub::Script::Cmd';
 use MooX::Cmd;
 use Term::ANSIColor qw(colored);
 use Types::Standard -types;
 
 use constant { true => !!1, false => !!0 };
 
-sub execute {
-    my ($self, $args_ref, $chain_ref) = @_;
-    my @options = @$args_ref;
+sub option_spec {
+    return [
+        [ "owner=s"   => "the quest's owner" ],
+        [ "status=s"  => "the quest status (open/completed/abandoned)" ],
+        [ "tags=s"    => "quest tags prefixed by + or -" ],
+    ];
+}
 
-    my @unknown_options;
-    my $option_user;
-    my $option_status;
+sub run {
+    my ($self, $opts, $args) = @_;
+
+    my $option_user       = $opts->{owner};
+    my $option_status     = $opts->{status};
     my @option_with_tags;
     my @option_without_tags;
 
-    foreach my $option (@options) {
-        if ($option =~ /^--owner=(.*)$/) {
-            $option_user = $1;
-        } elsif ($option =~ /^--status=(.*)$/)  {
-            $option_status = $1;
-            my $status_is_known = WWW::Questhub::Util::__in_array(
-                $option_status,
-                WWW::Questhub::Util::__get_known_quest_states(),
-            );
-            if (not $status_is_known) {
-                print "Error. Got unknown status value '$option_status'\n";
+    if ($opts->{tags}) {
+        my @tags = split /(?=[\+-])/, $opts->{tags};
+        foreach my $tag (@tags) {
+            if ($tag =~ /^\+(.+)$/) {
+                push @option_with_tags, $1;
+            } elsif ($tag =~ /^\-(.+)/) {
+                push @option_without_tags, $1;
+            } else {
+                croak "Error. Incorrect tag '$tag'\n";
                 exit 1;
-            };
-        } elsif ($option =~ /^--tags=(.*)$/)  {
-
-            my @tags = split /(?=[\+-])/, $1;
-
-            foreach my $tag (@tags) {
-                if ($tag =~ /^\+(.+)$/) {
-                    push @option_with_tags, $1;
-                } elsif ($tag =~ /^\-(.+)/) {
-                    push @option_without_tags, $1;
-                } else {
-                    croak "Error. Incorrect tag '$tag'\n";
-                    exit 1;
-                }
-
             }
-
-        } else {
-            push @unknown_options, $option;
         }
-    }
-
-    if (@unknown_options) {
-        print "Error. `qh list` got unknown option: '"
-            . join("', '", @unknown_options)
-            . "'.\n";
-        exit 1;
     }
 
     my $wq = WWW::Questhub->new();
