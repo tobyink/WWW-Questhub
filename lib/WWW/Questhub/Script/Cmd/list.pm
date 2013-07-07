@@ -12,6 +12,10 @@ use Types::Standard -types;
 
 use constant { true => !!1, false => !!0 };
 
+sub abstract {
+    return "Show a list of quests.";
+}
+
 sub option_spec {
     return [
         [ "owner=s"   => "the quest's owner" ],
